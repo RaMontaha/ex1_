@@ -4,8 +4,8 @@
 
 #include <stdio.h>
 #include <string.h>
-#include "RLEList.h"
-#include "tool/AsciiArtTool.h"
+#include "/home/mtm/public/2122b/ex1/RLEList.h"
+#include "AsciiArtTool.h"
 
 //used in comparing between strings
 #define EQUAL 0

@@ -7,7 +7,7 @@
 
 #include <stdio.h>
 #include <assert.h>
-#include "../RLEList.h"
+#include "/home/mtm/public/2122b/ex1/RLEList.h"
 
 /**
  * The following functions are available:
