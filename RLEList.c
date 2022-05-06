@@ -1,5 +1,5 @@
-#include <stdlib.h>
 #include "RLEList.h"
+#include <stdlib.h>
 
 #define ONE 1
 #define ZERO 0
@@ -10,6 +10,39 @@ struct RLEList_t {
 };
 
 //implement the functions here
+/**
+ * adds the tail list to the end of the head
+ * note: the tail lists starts from the first node.
+ * @param head
+ * @param tail
+ * @return
+ */
+static RLEList listMerge(RLEList head, RLEList tail) {
+    //check if the tail starts from the first node.
+    if (tail->count == 0) {
+        return NULL;
+    }
+    RLEList result = head;
+    RLEList tmp = head->next;
+
+    //find the last node of the head
+    while (tmp->next) {
+        tmp = tmp->next;
+    }
+
+    //the character in the first node of the tail is different
+    if (tail->character != tmp->character) {
+        //connect the two lists with any changes
+        tmp->next = tail;
+    } else {
+        //increase the counter of the last node in the head
+        tmp->count += tail->count;
+        //connect the two lists without the first node in the tail
+        tail = tail->next;
+        tmp->next = tail;
+    }
+    return result;
+}
 
 static int RLEListNodesCount(RLEList list) {
     int counter = 0;
@@ -95,7 +128,7 @@ RLEListResult RLEListAppend(RLEList list, char value) {
 
 int RLEListSize(RLEList list) {
     if (list == NULL
-        || list->next==NULL) {
+        || list->next == NULL) {
         return -1;
     }
     int counter = 0;
@@ -110,8 +143,7 @@ int RLEListSize(RLEList list) {
 
 
 RLEListResult RLEListRemove(RLEList list, int index) {
-    if (list == NULL
-        || list->next==NULL) {
+    if (list == NULL || list->next == NULL) {
         return RLE_LIST_NULL_ARGUMENT;
     }
     if (index < 0) {
@@ -119,45 +151,52 @@ RLEListResult RLEListRemove(RLEList list, int index) {
     }
     RLEList currentNode = list->next;
     RLEList prevNode = list;
-    int indexOfNode = 0;
-    int counter = 1;
-    while (currentNode) {
-        if (counter == currentNode->count) {
-            if (index == indexOfNode) {
-                if(prevNode->character == currentNode->next->character
-                   && currentNode->next
-                   && currentNode->next->next ){
-                    prevNode->next=currentNode->next->next;
-                    prevNode->count+= currentNode->next->count;
-                    free(currentNode->next);
-                }
-                else{
-                    prevNode->next = currentNode->next;
-                }
-                free(currentNode);
-                return RLE_LIST_SUCCESS;
-            }
-            prevNode = prevNode->next;
-            currentNode = currentNode->next;
-            counter = 1;
-            indexOfNode++;
-        } else {
-            if (indexOfNode == index) {
-                currentNode->count--;
-                return RLE_LIST_SUCCESS;
+    int counter;
+    int currentIndex = 1;
+    int nodesNumber = RLEListNodesCount(list);
 
+    //find the character in the given place number
+    for (int i = 0; i < nodesNumber; ++i) {
+        counter = currentNode->count;
+        while (counter) {
+            if (currentIndex == index) {
+                //finds the character that needs to be removed.
+                currentNode->count--;
+                //cut the list and merge again depending on the counter.
+                prevNode->next = NULL;
+                if (currentNode->count < ONE) {
+                    //the current node needs to be removed, merge with the next node.
+                    if (!listMerge(list, currentNode->next)) {
+                        printf("listMerge function failed");
+                        return RLE_LIST_NULL_ARGUMENT;
+                    }
+                    return RLE_LIST_SUCCESS;
+                }
+
+                else {
+                    //merge with the current node.
+                    if (!listMerge(list, currentNode)) {
+                        printf("listMerge function failed");
+                        return RLE_LIST_NULL_ARGUMENT;
+                    }
+                    return RLE_LIST_SUCCESS;
+                }
             }
-            counter++;
-            indexOfNode++;
+            currentIndex++;
+            counter--;
         }
+        //go to the next node to look for the given index, and save the previous node.
+        prevNode = prevNode->next;
+        currentNode = currentNode->next;
     }
+
     return RLE_LIST_INDEX_OUT_OF_BOUNDS;
 }
 
 
 char RLEListGet(RLEList list, int index, RLEListResult *result) {
     if (list == NULL
-        || list->next==NULL) {
+        || list->next == NULL) {
         if (result) {
             *result = RLE_LIST_NULL_ARGUMENT;
 
@@ -195,7 +234,7 @@ char RLEListGet(RLEList list, int index, RLEListResult *result) {
 
 RLEListResult RLEListMap(RLEList list, MapFunction map_function) {
     if (list == NULL
-        || list->next==NULL
+        || list->next == NULL
         || map_function == NULL) {
         return RLE_LIST_NULL_ARGUMENT;
     }
@@ -211,7 +250,7 @@ RLEListResult RLEListMap(RLEList list, MapFunction map_function) {
 
 char *RLEListExportToString(RLEList list, RLEListResult *result) {
     if (list == NULL
-        || list->next==NULL) {
+        || list->next == NULL) {
         if (result) {
             *result = RLE_LIST_NULL_ARGUMENT;
         }
